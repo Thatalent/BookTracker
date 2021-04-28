@@ -1,9 +1,12 @@
 import React, { useState } from "react";
-import { Button, Alert } from "reactstrap";
-import Highlight from "../components/Highlight";
-import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
+import { Button } from "reactstrap";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
+import {Column, Table} from 'react-virtualized';
+import 'react-virtualized/styles.css'; // only needs to be imported once
+import LinkButton from '../components/LinkButton';
+
 
 export const LibraryComponent = () => {
   const { apiOrigin = "http://localhost:3001", audience } = getConfig();
@@ -14,105 +17,85 @@ export const LibraryComponent = () => {
     error: null,
   });
 
-  const {
-    getAccessTokenSilently,
-    loginWithPopup,
-    getAccessTokenWithPopup,
-  } = useAuth0();
+  const Cell = ({ Book, Field, style }) => (
+    <div style={style}>
+      Book[Field] 
+    </div>
+  );
 
-  const handleConsent = async () => {
-    try {
-      await getAccessTokenWithPopup();
-      setState({
-        ...state,
-        error: null,
-      });
-    } catch (error) {
-      setState({
-        ...state,
-        error: error.error,
-      });
-    }
+  const books = [
+      { 
+          title: "Random Book",
+          authors: ['someone', 'wrote a book'],
+          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
+          genre: ['Books and reading', 'Reading'],
+          yearPublished: "2009",
+          publishers: ["Litwin Books"],
+          read: false
+       }, 
+      { 
+          title: "Test Book",
+          authors: ['someone', 'wrote a book'],
+          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
+          genre: ['Books and reading', 'Reading'],
+          yearPublished: "2009",
+          publishers: ["Litwin Books"],
+          read: false
+       }, 
+      { 
+          title: "Some Book",
+          authors: ['someone', 'wrote a book'],
+          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
+          genre: ['Books and reading', 'Reading'],
+          yearPublished: "2009",
+          publishers: ["Litwin Books"],
+          read: false
+       }, 
+      { 
+          title: "One Book",
+          authors: ['someone', 'wrote a book'],
+          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
+          genre: ['Books and reading', 'Reading'],
+          yearPublished: "2009",
+          publishers: ["Litwin Books"],
+          read: false
+       }, 
+      { 
+          title: "Two Book",
+          authors: ['someone', 'wrote a book'],
+          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
+          genre: ['Books and reading', 'Reading'],
+          yearPublished: "2009",
+          publishers: ["Litwin Books"],
+          read: false
+       }, 
+      { 
+          title: "5 Book",
+          authors: ['someone', 'wrote a book'],
+          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
+          genre: ['Books and reading', 'Reading'],
+          yearPublished: "2009",
+          publishers: ["Litwin Books"],
+          read: false
+       }, 
+      { 
+          title: "No Book",
+          authors: ['someone', 'wrote a book'],
+          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
+          genre: ['Books and reading', 'Reading'],
+          yearPublished: "2009",
+          publishers: ["Litwin Books"],
+          read: false
+       }
+];
 
-    await callApi();
-  };
-
-  const handleLoginAgain = async () => {
-    try {
-      await loginWithPopup();
-      setState({
-        ...state,
-        error: null,
-      });
-    } catch (error) {
-      setState({
-        ...state,
-        error: error.error,
-      });
-    }
-
-    await callApi();
-  };
-
-  const callApi = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-
-      const response = await fetch(`${apiOrigin}/api/external`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const responseData = await response.json();
-
-      setState({
-        ...state,
-        showResult: true,
-        apiMessage: responseData,
-      });
-    } catch (error) {
-      setState({
-        ...state,
-        error: error.error,
-      });
-    }
-  };
-
-  const handle = (e, fn) => {
-    e.preventDefault();
-    fn();
-  };
+  const ImageCell = ({cellData})=>(
+    <img src={cellData}/>
+  );
 
   return (
     <>
       <div className="mb-5">
-        {state.error === "consent_required" && (
-          <Alert color="warning">
-            You need to{" "}
-            <a
-              href="#/"
-              class="alert-link"
-              onClick={(e) => handle(e, handleConsent)}
-            >
-              consent to get access to users api
-            </a>
-          </Alert>
-        )}
-
-        {state.error === "login_required" && (
-          <Alert color="warning">
-            You need to{" "}
-            <a
-              href="#/"
-              class="alert-link"
-              onClick={(e) => handle(e, handleLoginAgain)}
-            >
-              log in again
-            </a>
-          </Alert>
-        )}
-
         <h1>User Library</h1>
         <p className="lead">
           View Books Added to your Library.
@@ -122,26 +105,32 @@ export const LibraryComponent = () => {
           Your library consist of any book added to a collection or marked as read. You can add books to your library by using the search option at the top. Once a book is added, you can mark it as read or add it to a collection for future use.
         </p>
 
-        <Button
+        <LinkButton
           color="primary"
           className="mt-5"
-          onClick={callApi}
-          disabled={!audience}
+          to='Books'
         >
           Add New Book
-        </Button>
+        </LinkButton>
       </div>
 
-      <div className="result-block-container">
-        {state.showResult && (
-          <div className="result-block" data-testid="api-result">
-            <h6 className="muted">Result</h6>
-            <Highlight>
-              <span>{JSON.stringify(state.apiMessage, null, 2)}</span>
-            </Highlight>
-          </div>
-        )}
-      </div>
+      <Table
+        width={800}
+        height={500}
+        headerHeight={20}
+        rowHeight={60}
+        rowCount={books.length}
+        rowGetter={({index}) => books[index]}
+        autoWidth={true}
+        autoHeight={true}>
+        <Column label="Title" dataKey="title" width={100} />
+        <Column width={200} label="Authors" dataKey="authors" />
+        <Column width={100} label="Cover" dataKey="coverImageUrl" cellRenderer={ImageCell}/>
+        <Column width={100} label="Genre" dataKey="genre" />
+        <Column width={200} label="Year Published" dataKey="yearPublished" />
+        <Column width={150} label="Publishers" dataKey="publishers" />
+        <Column width={100} label="read" dataKey="read" />
+      </Table>
     </>
   );
 };
