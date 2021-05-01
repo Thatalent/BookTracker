@@ -74,5 +74,30 @@ namespace book_tracker.Controllers
             _context.Books.Remove(entity);
             await _context.SaveChangesAsync();
         }
+
+        [HttpPost("{id}/{userId}/collection/{collectionId}")]
+        public async Task AddBookToCollection(int id, string userId, int collectionId)
+        {
+            var bookEntity = await _context.Books
+                .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
+
+            if (bookEntity is null)
+            {
+                throw new NotFoundException(nameof(Book), id);
+            }
+
+            var collectionEntity = await _context.Collections
+                .FirstOrDefaultAsync(x => x.Id == collectionId && x.UserId == userId);
+
+            if (collectionEntity is null)
+            {
+                throw new NotFoundException(nameof(Collection), id);
+            }
+
+            bookEntity.CollectionId = collectionId;
+
+            _context.Books.Update(bookEntity);
+            await _context.SaveChangesAsync();
+        }
     }
 }
