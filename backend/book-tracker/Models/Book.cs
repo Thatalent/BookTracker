@@ -21,6 +21,8 @@ namespace book_tracker.Models
 
         public bool Read { get; set; }
 
+        public string Title { get; set; }
+
         public int YearPublished { get; set; }
     }
 }
