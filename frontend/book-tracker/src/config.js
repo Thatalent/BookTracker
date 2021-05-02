@@ -1,4 +1,5 @@
 import configJson from "./auth_config.json";
+import backEndConfig from "./backend_config.json";
 
 export function getConfig() {
   // Configure the audience here. By default, it will take whatever is in the config
@@ -16,5 +17,6 @@ export function getConfig() {
     domain: configJson.domain,
     clientId: configJson.clientId,
     ...(audience ? { audience } : null),
+    backend: backEndConfig.url
   };
 }
