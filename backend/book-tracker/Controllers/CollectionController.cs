@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace book_tracker.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class CollectionController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
