@@ -56,7 +56,17 @@ namespace book_tracker.Controllers
                 throw new NotFoundException(nameof(Book), book.Id);
             }
 
-            _context.Books.Update(book);
+            entity.Author = book.Author;
+            entity.CollectionId = book.CollectionId;
+            entity.CoverImageUrl = book.CoverImageUrl;
+            entity.Genre = book.Genre;
+            entity.Pages = book.Pages;
+            entity.Publisher = book.Publisher;
+            entity.Read = book.Read;
+            entity.Title = book.Title;
+            entity.YearPublished = book.YearPublished;
+
+            _context.Books.Update(entity);
             await _context.SaveChangesAsync();
         }
 
