@@ -22,7 +22,7 @@ namespace book_tracker.Controllers
             _context = context;
         }
 
-        [HttpPost("{userId}")]
+        [HttpPost]
         public async Task CreateBook(Book book)
         {
             var userId = HttpContext.GetUserId();
