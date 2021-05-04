@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using book_tracker.Common;
 using book_tracker.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace book_tracker.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class BookController : ControllerBase
@@ -23,30 +25,38 @@ namespace book_tracker.Controllers
         [HttpPost("{userId}")]
         public async Task CreateBook(Book book)
         {
+            var userId = HttpContext.GetUserId();
+            book.UserId = userId;
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
         }
 
-        [HttpGet("{userId}")]
-        public async Task<List<Book>> GetBooks(string userId)
+        [HttpGet]
+        public async Task<List<Book>> GetBooks()
         {
+            var userId = HttpContext.GetUserId();
+
             return await _context.Books
                 .Include(x => x.Collection)
                 .Where(x => x.UserId == userId)
                 .ToListAsync();
         }
 
-        [HttpGet("{id}/{userId}")]
-        public async Task<Book> GetBook(int id, string userId)
+        [HttpGet("{id}")]
+        public async Task<Book> GetBook(int id)
         {
+            var userId = HttpContext.GetUserId();
+
             return await _context.Books
                 .Include(x => x.Collection)
                 .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
         }
 
-        [HttpPut("{userId}")]
-        public async Task UpdateBook(Book book, string userId)
+        [HttpPut]
+        public async Task UpdateBook(Book book)
         {
+            var userId = HttpContext.GetUserId();
+
             var entity = await _context.Books
                 .Include(x => x.Collection)
                 .FirstOrDefaultAsync(x => x.Id == book.Id && x.UserId == userId);
@@ -70,9 +80,11 @@ namespace book_tracker.Controllers
             await _context.SaveChangesAsync();
         }
 
-        [HttpDelete("{id}/{userId}")]
-        public async Task DeleteBook(int id, string userId)
+        [HttpDelete("{id}")]
+        public async Task DeleteBook(int id)
         {
+            var userId = HttpContext.GetUserId();
+
             var entity = await _context.Books
                 .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
 
@@ -85,9 +97,11 @@ namespace book_tracker.Controllers
             await _context.SaveChangesAsync();
         }
 
-        [HttpPost("{id}/{userId}/collection/{collectionId}")]
-        public async Task AddBookToCollection(int id, string userId, int collectionId)
+        [HttpPost("{id}/collection/{collectionId}")]
+        public async Task AddBookToCollection(int id, int collectionId)
         {
+            var userId = HttpContext.GetUserId();
+
             var bookEntity = await _context.Books
                 .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
 

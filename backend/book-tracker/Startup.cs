@@ -28,6 +28,8 @@ namespace book_tracker
             services.AddDbContextPool<ApplicationDbContext>(options =>
                 options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+            services.AddCors();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -61,10 +63,14 @@ namespace book_tracker
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthentication();
 
             app.UseRouting();
+
+            app.UseCors(x =>
+            {
+                x.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
+            });
 
             app.UseAuthorization();
 
