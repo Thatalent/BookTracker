@@ -7,14 +7,19 @@ import {
 import { withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
-import {Column, Table} from 'react-virtualized';
+import {Column, Table, SortDirection, SortIndicator } from 'react-virtualized';
+//import {createTableMultiSort, Column, Table} from 'react-virtualized';
 
 
 export class BooksComponent extends React.Component {
 
  constructor(props) {
     super(props);
-    this.state = { input: "", books: [] };
+    this.state = { input: "", books: [], sortedBooks: [], sortBy: "author_name", sortDirection: SortDirection.ASC  };
+    this.headerRenderer = this.headerRenderer.bind(this);
+    /*this.getHeader = this.getHeader.bind(this);
+    this.getRowsData = this.getRowsData.bind(this);
+    this.getKeys = this.getKeys.bind(this);*/
   };
 
   coverPrepend = 'https://covers.openlibrary.org/b/olid/';
@@ -34,7 +39,8 @@ export class BooksComponent extends React.Component {
     fetch(searchUrl).then(res => res.json())
     .then((result) => {
       this.setState({
-        books: result.docs
+        books: result.docs,
+        sortedBooks: result.docs
       });
       console.log("there should be an update yo.");
       console.log(result.docs);
@@ -48,9 +54,37 @@ export class BooksComponent extends React.Component {
   selectBook = ({rowData}) => {
     console.log(rowData);
   };
+  
+ 
+ sort({ sortBy, sortDirection }) {
+  const sortedBooks = this.state.books
+    .sortBy(item => item[sortBy])
+    .update(
+      list =>
+        sortDirection === SortDirection.DESC ? list.reverse() : list
+    );
+
+  this.setState({ sortBy, sortDirection, sortedBooks });
+}
+
+  headerRenderer({
+    label,
+    dataKey,
+    sortBy,
+    sortDirection,
+  }) {
+    return (
+      <div>
+        {label}
+        {sortBy === dataKey &&
+          <SortIndicator sortDirection={sortDirection} />
+        }
+      </div>
+    );
+  }
 
   render(){
-    let emptyBooks = !this.state.books || this.state.books.length < 1;
+    let emptyBooks = !this.state.sortedBooks || this.state.sortedBooks.length < 1;
   return (
     <>
       <div className="mb-5">
@@ -73,21 +107,24 @@ export class BooksComponent extends React.Component {
             </InputGroupAddon>
         </InputGroup>
       </div>
-
+   
       <Table
         width={800}
         height={500}
         headerHeight={20}
         rowHeight={100}
-        rowCount={this.state.books.length}
-        rowGetter={({index}) => this.state.books[index]}
+        rowCount={this.state.sortedBooks.length}
+        rowGetter={({index}) => this.state.sortedBooks[index]}
         autoWidth={true}
-        autoHeight={true}>
+        autoHeight={true}
+        sort={this.state.sort}
+        sortBy={this.state.sortBy}
+        sortDirection={this.state.sortDirection}>
         <Column width={100} label="Select" dataKey="isbn" onClick={this.selectBook}>
           <Input type="checkbox" />
         </Column>
         <Column label="Title" dataKey="title" width={200} />
-        <Column width={200} label="Authors" dataKey="author_name" />
+        <Column width={200} label="Author" dataKey="author_name" disableSort={false} headerRenderer={this.headerRenderer}/>
         <Column width={100} label="Cover" dataKey="cover_edition_key" cellRenderer={this.ImageCell}/>
         <Column width={100} label="Genre" dataKey="subject" />
         <Column width={200} label="Year Published" dataKey="publish_year" />
@@ -95,8 +132,15 @@ export class BooksComponent extends React.Component {
         <Column width={100} label="read" dataKey="read" />
       </Table>
     </>
-  )}
+  );
+  }
 };
+
+const RenderRow = (props) =>{
+ return props.keys.map((key, index)=>{
+ return <td key={props.data[key]}>{props.data[key]}</td>
+ })
+}
 
 export default withAuthenticationRequired(BooksComponent, {
   onRedirecting: () => <Loading />,
