@@ -1,25 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
 
-const BookComponent = ()=> {
+const BookComponent = (props)=> {
 
     const { backend } = getConfig();
     const {user} = useAuth0();
-    const userId = userId.sub;
+    const userId = user.sub;
     // const {selectedBook} = this.props.location.state;
     // const [book, setBook] = useState(selectedBook || {});
     const [book, setBook] = useState({});
-    let bookId = this.props.location.pathname.split('/')[2];
+    let bookId = props.location.pathname.split('/')[2];
 
     let getBookUrl = `${backend}/Book/${bookId}/${userId}`;
-
-    fetch(getBookUrl).then(res => res.json())
-    .then((result) => {
-        setBook(result);
-        console.log(result);
-    });
+    useEffect(() => {
+        fetch(getBookUrl).then(res => res.json())
+        .then((result) => {
+            setBook(result);
+            console.log(result);
+        });
+    },[]);
 
     return(
         <>

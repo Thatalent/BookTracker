@@ -8,6 +8,7 @@ import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
 import {Column, Table} from 'react-virtualized';
+import { Link } from "react-router-dom";
 
 const BooksComponent = () =>{
 
@@ -21,8 +22,9 @@ const BooksComponent = () =>{
   const coverPrepend = 'https://covers.openlibrary.org/b/olid/';
   const coverAppend = '-M.jpg';
 
-  const ImageCell = ({cellData})=>{
-    return <img height='100px' src={coverPrepend+cellData+coverAppend}/>
+  const ImageCell = ({cellData, rowData})=>{
+    rowData.coverUrl = coverPrepend+cellData+coverAppend;
+    return <img height='100px' src={rowData.coverUrl}/>
   };
 
   const search = () => {
@@ -45,6 +47,26 @@ const BooksComponent = () =>{
 
   const selectBook = ({rowData}) => {
     console.log(rowData);
+  };
+
+  const BookSelectorCell = ({rowData}) => {
+    console.log(rowData);
+    return <Link
+          color="primary"
+          className="mt-5"
+          to={{
+            pathname:'book/new',
+            state: {
+              title: rowData.title,
+              author: rowData.author_name,
+              coverImageUrl: rowData.coverUrl,
+              genre: rowData.subject,
+              yearPublished: rowData.publish_year,
+              publisher: rowData.publisher
+            }
+          }}>
+          Add Book
+        </Link>
   };
     // let emptyBooks = !this.state.books || this.state.books.length < 1;
   return (
@@ -79,7 +101,7 @@ const BooksComponent = () =>{
         rowGetter={({index}) => books[index]}
         autoWidth={true}
         autoHeight={true}>
-        <Column width={100} label="Select" dataKey="isbn" onClick={selectBook}/>
+        <Column width={100} label="Select" dataKey="isbn" cellRenderer={BookSelectorCell}/>
         <Column label="Title" dataKey="title" width={200} />
         <Column width={200} label="Authors" dataKey="author_name" />
         <Column width={100} label="Cover" dataKey="cover_edition_key" cellRenderer={ImageCell}/>

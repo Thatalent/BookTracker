@@ -11,6 +11,8 @@ import ExternalApi from "./views/ExternalApi";
 import Library from "./views/Library";
 import Books from "./views/Books";
 import Book from "./views/Book";
+import NewBook from "./views/NewBook";
+import EditBook from "./views/EditBook";
 import Collection from "./views/Collection";
 import { useAuth0 } from "@auth0/auth0-react";
 import history from "./utils/history";
@@ -45,7 +47,9 @@ const App = () => {
             <Route path="/external-api" component={ExternalApi} />
             <Route path="/library" component={Library} />
             <Route path="/books" component={Books} />
-            <Route path="/book" component={Book} />
+            <Route path="/book/new" component={NewBook} />
+            <Route path="/book/:id/edit" component={EditBook} />
+            <Route path="/book/:id" component={Book} />
             <Route path="/collection" component={Collection} />
           </Switch>
         </Container>
