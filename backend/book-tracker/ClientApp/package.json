@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "rimraf ./build && react-scripts start",
+    "start": "npm-run-all --parallel spa",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jest-environment-jsdom-sixteen",
     "eject": "react-scripts eject",
@@ -12,8 +12,8 @@
     "server:dev": "nodemon server.js",
     "api-server": "node api-server.js",
     "api-server:dev": "nodemon api-server.js",
-    "dev": "npm-run-all --parallel spa api-server:dev",
-    "prod": "npm-run-all --parallel server api-server"
+    "dev": "npm-run-all --parallel spa",
+    "prod": "npm-run-all --parallel "
   },
   "dependencies": {
     "@auth0/auth0-react": "^1.2.0",
@@ -36,8 +36,7 @@
     "react-scripts": "^3.4.0",
     "react-virtualized": "^9.22.3",
     "react-window": "^1.8.6",
-    "reactstrap": "^8.9.0",
-    "rimraf": "^2.6.2"
+    "reactstrap": "^8.9.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.10.1",
