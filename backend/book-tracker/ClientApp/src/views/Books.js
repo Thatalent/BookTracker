@@ -4,53 +4,71 @@ import {
     InputGroup,
     InputGroupAddon,
     Button } from "reactstrap";
-import { withAuthenticationRequired } from "@auth0/auth0-react";
+import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
 import {Column, Table} from 'react-virtualized';
+import { Link } from "react-router-dom";
+
+const BooksComponent = () =>{
 
 
-export class BooksComponent extends React.Component {
+  const {user} = useAuth0();
+  console.log(user.sub);
+    
+  const [input, setInput]=  useState("");
+  const [books, setBooks] =  useState([]);
 
- constructor(props) {
-    super(props);
-    this.state = { input: "", books: [] };
+  const coverPrepend = 'https://covers.openlibrary.org/b/olid/';
+  const coverAppend = '-M.jpg';
+
+  const ImageCell = ({cellData, rowData})=>{
+    rowData.coverUrl = coverPrepend+cellData+coverAppend;
+    return <img height='100px' src={rowData.coverUrl}/>
   };
 
-  coverPrepend = 'https://covers.openlibrary.org/b/olid/';
-  coverAppend = '-M.jpg';
-
-  ImageCell = ({cellData})=>(
-    <img height='100px' src={this.coverPrepend+cellData+this.coverAppend}/>
-  );
-
-  search = () => {
-    let searchText = this.state.input;
+  const search = () => {
+    let searchText = input;
     searchText = searchText.replace(/\s+/g, '+');
-    // this.setState({ input: "" });
     console.log(searchText);
 
     const searchUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(searchText)}&fields=key,title,author_name,cover_edition_key,publish_year,isbn,subject,publisher&mode=everything`;
     fetch(searchUrl).then(res => res.json())
     .then((result) => {
-      this.setState({
-        books: result.docs
-      });
+      setBooks(result.docs);
       console.log("there should be an update yo.");
       console.log(result.docs);
     });
   };
 
-  updateInput = (input) => {
-    this.setState({ input });
+  const updateInput = (newInput) => {
+    setInput(newInput);
   };
 
-  selectBook = ({rowData}) => {
+  const selectBook = ({rowData}) => {
     console.log(rowData);
   };
 
-  render(){
-    let emptyBooks = !this.state.books || this.state.books.length < 1;
+  const BookSelectorCell = ({rowData}) => {
+    console.log(rowData);
+    return <Link
+          color="primary"
+          className="mt-5"
+          to={{
+            pathname:'book/new',
+            state: {
+              title: rowData.title,
+              author: rowData.author_name,
+              coverImageUrl: coverPrepend+rowData.cover_edition_key+coverAppend,
+              genre: rowData.subject,
+              yearPublished: rowData.publish_year,
+              publisher: rowData.publisher
+            }
+          }}>
+          Add Book
+        </Link>
+  };
+    // let emptyBooks = !this.state.books || this.state.books.length < 1;
   return (
     <>
       <div className="mb-5">
@@ -65,11 +83,11 @@ export class BooksComponent extends React.Component {
         <InputGroup>
             <Input 
               placeholder="Type Book Title"
-              onChange={(e) => this.updateInput(e.target.value)}
-              value={this.state.input}
+              onChange={(e) => updateInput(e.target.value)}
+              value={input}
             />
             <InputGroupAddon addonType="append">
-                <Button color="primary" onClick={this.search}>Search</Button>
+                <Button color="primary" onClick={search}>Search</Button>
             </InputGroupAddon>
         </InputGroup>
       </div>
@@ -79,23 +97,21 @@ export class BooksComponent extends React.Component {
         height={500}
         headerHeight={20}
         rowHeight={100}
-        rowCount={this.state.books.length}
-        rowGetter={({index}) => this.state.books[index]}
+        rowCount={books.length}
+        rowGetter={({index}) => books[index]}
         autoWidth={true}
         autoHeight={true}>
-        <Column width={100} label="Select" dataKey="isbn" onClick={this.selectBook}>
-          <Input type="checkbox" />
-        </Column>
+        <Column width={100} label="Select" dataKey="isbn" cellRenderer={BookSelectorCell}/>
         <Column label="Title" dataKey="title" width={200} />
         <Column width={200} label="Authors" dataKey="author_name" />
-        <Column width={100} label="Cover" dataKey="cover_edition_key" cellRenderer={this.ImageCell}/>
+        <Column width={100} label="Cover" dataKey="cover_edition_key" cellRenderer={ImageCell}/>
         <Column width={100} label="Genre" dataKey="subject" />
         <Column width={200} label="Year Published" dataKey="publish_year" />
         <Column width={150} label="Publishers" dataKey="publishers" />
         <Column width={100} label="read" dataKey="read" />
       </Table>
     </>
-  )}
+  )
 };
 
 export default withAuthenticationRequired(BooksComponent, {
