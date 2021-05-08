@@ -13,7 +13,8 @@ import Books from "./views/Books";
 import Book from "./views/Book";
 import NewBook from "./views/NewBook";
 import EditBook from "./views/EditBook";
-import Collection from "./views/Collection";
+import NewCollection from "./views/NewCollection";
+import EditCollection from "./views/EditCollection";
 import { useAuth0 } from "@auth0/auth0-react";
 import history from "./utils/history";
 
@@ -50,7 +51,8 @@ const App = () => {
             <Route path="/book/new" component={NewBook} />
             <Route path="/book/:id/edit" component={EditBook} />
             <Route path="/book/:id" component={Book} />
-            <Route path="/collection" component={Collection} />
+            <Route path="/collection/new" component={NewCollection} />
+            <Route path="/collection/:id/edit" component={EditCollection} />
           </Switch>
         </Container>
         <Footer />

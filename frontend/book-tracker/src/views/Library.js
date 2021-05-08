@@ -1,21 +1,50 @@
-import React, { useState } from "react";
-import { Button } from "reactstrap";
-import { withAuthenticationRequired } from "@auth0/auth0-react";
+import React, { useState, useEffect } from "react";
+import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
 import {Column, Table} from 'react-virtualized';
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import LinkButton from '../components/LinkButton';
+import { Link } from "react-router-dom";
+import { Input, Label } from "reactstrap";
 
 
 export const LibraryComponent = () => {
-  const { apiOrigin = "http://localhost:3001", audience } = getConfig();
+  const { backend } = getConfig();
+  const {getAccessTokenSilently} = useAuth0();
+  const [collection, setCollection] = useState(null);
+  const [bookList, setBookList] = useState([]);
+  const [books, setBooks] = useState([])
 
-  const [state, setState] = useState({
-    showResult: false,
-    apiMessage: "",
-    error: null,
-  });
+  const [collections, setCollections] = useState([]);
+
+  const collectionUrl =  `${backend}/Collection/`;
+
+  let getBookUrl = `${backend}/Book/`;
+  useEffect(() => {
+      getAccessTokenSilently().then((token)=>{
+        fetch(getBookUrl,{
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }).then(res => res.json())
+        .then((result) => {
+            setBooks(result);
+            console.log(result);
+        });
+        fetch(collectionUrl,{
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          }
+          }).then(res => res.json())
+          .then((result) => {
+              if (result) setCollections(result);
+              console.log(result);
+          });
+      });
+  },[]);
 
   const Cell = ({ Book, Field, style }) => (
     <div style={style}>
@@ -23,71 +52,40 @@ export const LibraryComponent = () => {
     </div>
   );
 
-  const books = [
-      { 
-          title: "Random Book",
-          authors: ['someone', 'wrote a book'],
-          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
-          genre: ['Books and reading', 'Reading'],
-          yearPublished: "2009",
-          publishers: ["Litwin Books"],
-          read: false
-       }, 
-      { 
-          title: "Test Book",
-          authors: ['someone', 'wrote a book'],
-          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
-          genre: ['Books and reading', 'Reading'],
-          yearPublished: "2009",
-          publishers: ["Litwin Books"],
-          read: false
-       }, 
-      { 
-          title: "Some Book",
-          authors: ['someone', 'wrote a book'],
-          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
-          genre: ['Books and reading', 'Reading'],
-          yearPublished: "2009",
-          publishers: ["Litwin Books"],
-          read: false
-       }, 
-      { 
-          title: "One Book",
-          authors: ['someone', 'wrote a book'],
-          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
-          genre: ['Books and reading', 'Reading'],
-          yearPublished: "2009",
-          publishers: ["Litwin Books"],
-          read: false
-       }, 
-      { 
-          title: "Two Book",
-          authors: ['someone', 'wrote a book'],
-          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
-          genre: ['Books and reading', 'Reading'],
-          yearPublished: "2009",
-          publishers: ["Litwin Books"],
-          read: false
-       }, 
-      { 
-          title: "5 Book",
-          authors: ['someone', 'wrote a book'],
-          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
-          genre: ['Books and reading', 'Reading'],
-          yearPublished: "2009",
-          publishers: ["Litwin Books"],
-          read: false
-       }, 
-      { 
-          title: "No Book",
-          authors: ['someone', 'wrote a book'],
-          coverImageUrl: 'https://covers.openlibrary.org/b/id/5546156-S.jpg',
-          genre: ['Books and reading', 'Reading'],
-          yearPublished: "2009",
-          publishers: ["Litwin Books"],
-          read: false
-       }
-];
+  const BookSelectorCell = ({rowData}) => {
+    console.log(rowData);
+    return <Link
+          color="primary"
+          className="mt-5"
+          to={{
+            pathname:'book/'+rowData.id,
+            state: {
+              title: rowData.title,
+              author: rowData.author_name,
+              coverImageUrl: rowData.coverUrl,
+              genre: rowData.subject,
+              yearPublished: rowData.publish_year,
+              publisher: rowData.publisher
+            }
+          }}>
+          {rowData.title}
+        </Link>
+  };
+
+  const onDropdownSelected = (e) => {           
+    if (e.target.value !== '') {
+        const collect = JSON.parse(e.target.value);
+        setCollection(collect);
+    }
+  };
+
+  useEffect(()=> {
+    if(collection){
+      setBookList(books.filter(book => book.collectionId == collection.id));
+    } else{
+      setBookList(books);
+    }
+  }, [collection, books]);
 
   const ImageCell = ({cellData})=>(
     <img src={cellData}/>
@@ -112,6 +110,44 @@ export const LibraryComponent = () => {
         >
           Add New Book
         </LinkButton>
+        <LinkButton
+          color="primary"
+          className="mt-5"
+          to='collection/new'
+        >
+          Add New Collection
+        </LinkButton>
+
+        { collection && (
+
+          <LinkButton
+          color="primary"
+          className="mt-5"
+          to={'collection/'+collection.id+'/edit'}
+          >
+          Edit Collection
+          </LinkButton>
+        )}
+
+        <br/>
+        <br/>
+        <Label>Collection:</Label>
+        <Input type="select" name="select" id="collectionSelect" onChange={onDropdownSelected}>
+                <option
+                    key="none"
+                    name="none"
+                    value="null">
+                    None
+                </option>
+            {collections.map(collection => 
+                <option
+                    key={collection.id}
+                    name={collection.id}
+                    value={JSON.stringify(collection)}>
+                    {collection.name}
+                </option>
+                )}
+          </Input>
       </div>
 
       <Table
@@ -119,11 +155,11 @@ export const LibraryComponent = () => {
         height={500}
         headerHeight={20}
         rowHeight={60}
-        rowCount={books.length}
-        rowGetter={({index}) => books[index]}
+        rowCount={bookList.length}
+        rowGetter={({index}) => bookList[index]}
         autoWidth={true}
         autoHeight={true}>
-        <Column label="Title" dataKey="title" width={100} />
+        <Column label="Title" dataKey="title" width={100} cellRenderer={BookSelectorCell}/>
         <Column width={200} label="Authors" dataKey="authors" />
         <Column width={100} label="Cover" dataKey="coverImageUrl" cellRenderer={ImageCell}/>
         <Column width={100} label="Genre" dataKey="genre" />

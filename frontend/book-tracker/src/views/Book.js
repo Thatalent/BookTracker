@@ -2,28 +2,42 @@ import React, { useState, useEffect } from "react";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
+import LinkButton from '../components/LinkButton';
 
 const BookComponent = (props)=> {
 
     const { backend } = getConfig();
-    const {user} = useAuth0();
-    const userId = user.sub;
+    const {getAccessTokenSilently} = useAuth0();
     // const {selectedBook} = this.props.location.state;
     // const [book, setBook] = useState(selectedBook || {});
     const [book, setBook] = useState({});
     let bookId = props.location.pathname.split('/')[2];
 
-    let getBookUrl = `${backend}/Book/${bookId}/${userId}`;
+    let getBookUrl = `${backend}/Book/${bookId}`;
     useEffect(() => {
-        fetch(getBookUrl).then(res => res.json())
+        getAccessTokenSilently().then((token)=>{
+        fetch(getBookUrl,{
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }).then(res => res.json())
         .then((result) => {
             setBook(result);
             console.log(result);
         });
+    });
     },[]);
 
     return(
         <>
+        <LinkButton
+          color="primary"
+          className="mt-5"
+          to={book.id+'/edit'}
+        >
+          Edit
+        </LinkButton>
             <h2>{book.title}</h2>
             <img src={book.coverImageUrl}/>
             <h2>Author:</h2><p>{book.author}</p>

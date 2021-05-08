@@ -59,7 +59,7 @@ const BooksComponent = () =>{
             state: {
               title: rowData.title,
               author: rowData.author_name,
-              coverImageUrl: rowData.coverUrl,
+              coverImageUrl: coverPrepend+rowData.cover_edition_key+coverAppend,
               genre: rowData.subject,
               yearPublished: rowData.publish_year,
               publisher: rowData.publisher

@@ -7,8 +7,7 @@ import { Button, Input, Form, FormGroup, Label } from "reactstrap";
 const NewBookComponent = (props)=> {
 
     const { backend } = getConfig();
-    const {user} = useAuth0();
-    const userId = user.sub;
+    const {getAccessTokenSilently} = useAuth0();
     // const {selectedBook} = this.props.location.state;
     // const [book, setBook] = useState(selectedBook || {});
     const [title, setTitle] = useState(""),
@@ -20,7 +19,7 @@ const NewBookComponent = (props)=> {
     [pages, setPages] = useState(0);
     let bookId = props.location.pathname.split('/')[2];
 
-    const bookUrl = `${backend}/Book/${userId}`;
+    const bookUrl = `${backend}/Book/`;
 
     useEffect(() => {
         let result = props.location.state;
@@ -37,22 +36,34 @@ const NewBookComponent = (props)=> {
     }, []);
     
 
-    const editBook = () => {
-        fetch(bookUrl,{
-            method: 'PUT',
-            body: JSON.stringify(title, author, yearPublished, genre, coverImageUrl, pages, publisher),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(res => res.json())
-            .then((result) => {
-            if (result.title) setTitle(result.title);
-            if (result.author) setAuthor(result.author);
-            if (result.coverImageUrl) setCover(result.coverImageUrl);
-            if (result.genre) setGenre(result.genre);
-            if (result.publisher) setPublisher(result.publisher);
-            if (result.pages) setPages(result.pages);
-            console.log(result);
+    const addBook = () => {
+        getAccessTokenSilently().then((token)=>{
+            console.log(token);
+            fetch(bookUrl,{
+                method: 'POST',
+                body: JSON.stringify({
+                    title, 
+                    author: author.toString(), 
+                    yearPublished: yearPublished.toString(), 
+                    genre: genre.toString(), 
+                    coverImageUrl,
+                    pages, 
+                    publisher: publisher.toString()
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            }).then(res => res.json())
+                .then((result) => {
+                if (result.title) setTitle(result.title);
+                if (result.author) setAuthor(result.author.join());
+                if (result.coverImageUrl) setCover(result.coverImageUrl);
+                if (result.genre) setGenre(result.genre.join());
+                if (result.publisher) setPublisher(result.publisher.join());
+                if (result.pages) setPages(result.pages);
+                console.log(result);
+            });
         });
     };
 
@@ -96,7 +107,7 @@ const NewBookComponent = (props)=> {
                 setPages(event.target.value);
             }}/>
             </FormGroup>
-            <Button onSubmit={editBook}>Submit</Button>
+            <Button onClick={addBook}>Submit</Button>
             </Form>
         </>
     );
