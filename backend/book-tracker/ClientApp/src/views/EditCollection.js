@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
-import { Button, Input, Form, FormGroup, Label } from "reactstrap";
+import { Button, Input, Form, FormGroup, Label, Spinner } from "reactstrap";
+import { Redirect } from "react-router";
 
 const EditCollectionComponent = (props)=> {
 
+    const [loading, setLoading]=  useState(false),
+    [redirect, setRediect] = useState(null);
     const { backend } = getConfig();
     const {getAccessTokenSilently, user} = useAuth0();
     const userId = user.sub;
@@ -18,6 +21,7 @@ const EditCollectionComponent = (props)=> {
     const putUrl =  `${backend}/collection/`;
 
     useEffect(() => {
+        setLoading(true);
         getAccessTokenSilently().then((token)=>{
             fetch(collectionUrl,{
                 headers: {
@@ -28,6 +32,8 @@ const EditCollectionComponent = (props)=> {
             .then((result) => {
                 if (result) setName(result.name);
                 console.log(result);
+            }).finally(()=>{
+                setLoading(false);
             });
         });
       }, []);
@@ -44,6 +50,8 @@ const EditCollectionComponent = (props)=> {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             }
+        }).then(() => setRediect('/library')).finally(()=>{
+            setLoading(false);
         });
     });
     };
@@ -62,6 +70,9 @@ const EditCollectionComponent = (props)=> {
 
     return(
         <>
+        {redirect && (  
+            <Redirect to={redirect} />
+        )}
         <Button onClick={deleteCollection} color='red'>Delete</Button>
         <Form>
       <FormGroup>
@@ -71,7 +82,12 @@ const EditCollectionComponent = (props)=> {
                 setName(event.target.value);
             }}/>
             </FormGroup>
+            <div style={{display: 'flex'}}>
             <Button onClick={editCollection}>Submit</Button>
+            {loading && (
+                <Spinner type="grow" color="primary" />
+            )}
+            </div>
             </Form>
         </>
     );

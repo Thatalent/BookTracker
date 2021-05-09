@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
-import { Button, Input, Form, FormGroup, Label } from "reactstrap";
+import { Button, Input, Form, FormGroup, Label, Spinner } from "reactstrap";
+import { Redirect } from "react-router";
 
 const NewBookComponent = (props)=> {
 
+    const [loading, setLoading]=  useState(false);
     const { backend } = getConfig();
     const {getAccessTokenSilently} = useAuth0();
     // const {selectedBook} = this.props.location.state;
@@ -16,7 +18,9 @@ const NewBookComponent = (props)=> {
     [publisher, setPublisher] = useState(""),
     [genre, setGenre] = useState(""),
     [yearPublished, setYear] = useState(""),
-    [pages, setPages] = useState(0);
+    [pages, setPages] = useState(0),
+
+    [redirect, setRediect] = useState(null);
     let bookId = props.location.pathname.split('/')[2];
 
     const bookUrl = `${backend}/Book/`;
@@ -37,8 +41,8 @@ const NewBookComponent = (props)=> {
     
 
     const addBook = () => {
+        setLoading(true);
         getAccessTokenSilently().then((token)=>{
-            console.log(token);
             fetch(bookUrl,{
                 method: 'POST',
                 body: JSON.stringify({
@@ -54,21 +58,31 @@ const NewBookComponent = (props)=> {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 }
-            }).then(res => res.json())
-                .then((result) => {
-                if (result.title) setTitle(result.title);
-                if (result.author) setAuthor(result.author.join());
-                if (result.coverImageUrl) setCover(result.coverImageUrl);
-                if (result.genre) setGenre(result.genre.join());
-                if (result.publisher) setPublisher(result.publisher.join());
-                if (result.pages) setPages(result.pages);
-                console.log(result);
+            }).then(res => {
+                setRediect('/library')
+                res.json();
+            })
+            //     .then((result) => {
+            //     if (result.title) setTitle(result.title);
+            //     if (result.author) setAuthor(result.author.join());
+            //     if (result.coverImageUrl) setCover(result.coverImageUrl);
+            //     if (result.genre) setGenre(result.genre.join());
+            //     if (result.publisher) setPublisher(result.publisher.join());
+            //     if (result.pages) setPages(result.pages);
+            //     console.log(result);
+            // });
+            .finally(()=>{
+                setLoading(false);
             });
         });
     };
 
     return(
         <>
+        {redirect && (  
+            <Redirect to={redirect} />
+        )}
+
         <Form>
       <FormGroup>
             <Label>Title</Label>
@@ -107,8 +121,14 @@ const NewBookComponent = (props)=> {
                 setPages(event.target.value);
             }}/>
             </FormGroup>
-            <Button onClick={addBook}>Submit</Button>
+            <div style={{display: 'flex'}}>
+            <Button onClick={addBook}>Submit</Button>         
+            {loading && (
+                <Spinner type="grow" color="primary" />
+            )}
+            </div>
             </Form>
+            <br/>
         </>
     );
 

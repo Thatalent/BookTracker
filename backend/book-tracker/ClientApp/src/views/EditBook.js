@@ -2,9 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { getConfig } from "../config";
 import Loading from "../components/Loading";
-import { Button, Input, Form, FormGroup, Label } from "reactstrap";
+import { Button, Input, Form, FormGroup, Label, Spinner } from "reactstrap";
+import { Redirect } from "react-router";
 
 const EditBookComponent = (props)=> {
+
+    const [loading, setLoading]=  useState(false),
+    [redirect, setRediect] = useState(null);
 
     const { backend } = getConfig();
     const {getAccessTokenSilently} = useAuth0();
@@ -28,6 +32,7 @@ const EditBookComponent = (props)=> {
     const collectionUrl =  `${backend}/Collection/`;
 
     useEffect(() => {
+        setLoading(true);
         getAccessTokenSilently().then((token)=>{
             fetch(bookUrl,{
                 headers: {
@@ -46,6 +51,8 @@ const EditBookComponent = (props)=> {
                 if (result.read) setRead(result.read);
                 if (result.collection) setCollection(result.collection);
                 console.log(result);
+            }).finally(()=>{
+                setLoading(false);
             });
             fetch(collectionUrl,{
                 headers: {
@@ -62,6 +69,7 @@ const EditBookComponent = (props)=> {
     
 
     const editBook = () => {
+        setLoading(true);
         getAccessTokenSilently().then((token)=>{
         fetch(putUrl,{
             method: 'PUT',
@@ -72,17 +80,22 @@ const EditBookComponent = (props)=> {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             }
-        }).then(res => res.json())
-        .then((result) => {
-            if (result.title) setTitle(result.title);
-            if (result.author) setAuthor(result.author);
-            if (result.coverImageUrl) setCover(result.coverImageUrl);
-            if (result.genre) setGenre(result.genre);
-            if (result.publisher) setPublisher(result.publisher);
-            if (result.pages) setPages(result.pages);
-            if (result.read) setPages(result.read);
-            console.log(result);
-        });
+        }).then(res => {
+            setRediect('/book/'+bookId);
+            res.json();
+        // })
+        // .then((result) => {
+        //     if (result.title) setTitle(result.title);
+        //     if (result.author) setAuthor(result.author);
+        //     if (result.coverImageUrl) setCover(result.coverImageUrl);
+        //     if (result.genre) setGenre(result.genre);
+        //     if (result.publisher) setPublisher(result.publisher);
+        //     if (result.pages) setPages(result.pages);
+        //     if (result.read) setPages(result.read);
+        //     console.log(result);
+        }).finally(()=>{
+            setLoading(false);
+        });;
     });
     };
 
@@ -113,6 +126,9 @@ const EditBookComponent = (props)=> {
 
     return(
         <>
+        {redirect && (  
+            <Redirect to={redirect} />
+        )}
         <Button onClick={deleteBook} color='red'>Delete</Button>
         <Form>
       <FormGroup>
@@ -179,7 +195,12 @@ const EditBookComponent = (props)=> {
                 setPages(event.target.value);
             }}/>
             </FormGroup>
-            <Button onClick={editBook}>Submit</Button>
+            <div style={{display: 'flex'}}>
+            <Button onClick={editBook}>Submit</Button>         
+            {loading && (
+                <Spinner type="grow" color="primary" />
+            )}
+            </div>
             </Form>
         </>
     );

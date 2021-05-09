@@ -6,10 +6,11 @@ import {Column, Table} from 'react-virtualized';
 import 'react-virtualized/styles.css'; // only needs to be imported once
 import LinkButton from '../components/LinkButton';
 import { Link } from "react-router-dom";
-import { Input, Label } from "reactstrap";
+import { Input, Label, Spinner } from "reactstrap";
 
 
 export const LibraryComponent = () => {
+  const [loading, setLoading]=  useState(false);
   const { backend } = getConfig();
   const {getAccessTokenSilently} = useAuth0();
   const [collection, setCollection] = useState(null);
@@ -22,6 +23,7 @@ export const LibraryComponent = () => {
 
   let getBookUrl = `${backend}/Book/`;
   useEffect(() => {
+      setLoading(true);
       getAccessTokenSilently().then((token)=>{
         fetch(getBookUrl,{
             headers: {
@@ -32,6 +34,8 @@ export const LibraryComponent = () => {
         .then((result) => {
             setBooks(result);
             console.log(result);
+        }).finally(()=>{
+          setLoading(false);
         });
         fetch(collectionUrl,{
           headers: {
@@ -129,6 +133,10 @@ export const LibraryComponent = () => {
           </LinkButton>
         )}
 
+        {loading && (
+            <Spinner type="grow" color="primary" />
+        )}
+
         <br/>
         <br/>
         <Label>Collection:</Label>
@@ -152,13 +160,13 @@ export const LibraryComponent = () => {
 
       <Table
         width={800}
-        height={500}
+        height={400}
         headerHeight={20}
         rowHeight={60}
         rowCount={bookList.length}
         rowGetter={({index}) => bookList[index]}
         autoWidth={true}
-        autoHeight={true}>
+        autoHeight={false}>
         <Column label="Title" dataKey="title" width={100} cellRenderer={BookSelectorCell}/>
         <Column width={200} label="Authors" dataKey="authors" />
         <Column width={100} label="Cover" dataKey="coverImageUrl" cellRenderer={ImageCell}/>
@@ -167,6 +175,7 @@ export const LibraryComponent = () => {
         <Column width={150} label="Publishers" dataKey="publishers" />
         <Column width={100} label="read" dataKey="read" />
       </Table>
+      <br/>
     </>
   );
 };
