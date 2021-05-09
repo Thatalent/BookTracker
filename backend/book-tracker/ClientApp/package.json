@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "npm-run-all --parallel spa api-server",
+    "start": "npm-run-all --parallel spa",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jest-environment-jsdom-sixteen",
     "eject": "react-scripts eject",
@@ -12,8 +12,8 @@
     "server:dev": "nodemon server.js",
     "api-server": "node api-server.js",
     "api-server:dev": "nodemon api-server.js",
-    "dev": "npm-run-all --parallel spa api-server:dev",
-    "prod": "npm-run-all --parallel server api-server"
+    "dev": "npm-run-all --parallel spa",
+    "prod": "npm-run-all --parallel "
   },
   "dependencies": {
     "@auth0/auth0-react": "^1.2.0",
@@ -27,6 +27,7 @@
     "helmet": "^3.18.0",
     "highlight.js": "^10.0.3",
     "jwks-rsa": "^1.4.0",
+    "lodash": "^4.17.21",
     "morgan": "^1.9.1",
     "npm-run-all": "^4.1.5",
     "react": "^16.8.6",
