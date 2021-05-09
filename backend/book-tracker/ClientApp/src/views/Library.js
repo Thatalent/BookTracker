@@ -123,7 +123,7 @@ export const LibraryComponent = () => {
   }
 
   const ImageCell = ({cellData})=>(
-    <img src={cellData}/>
+    <img height='100px' src={cellData}/>
   );
 
   return (

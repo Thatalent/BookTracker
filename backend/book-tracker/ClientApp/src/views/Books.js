@@ -10,6 +10,7 @@ import { getConfig } from "../config";
 import Loading from "../components/Loading";
 import {Column, Table, AutoSizer, CellMeasurerCache, CellMeasurer, SortDirection, tableSettings,  } from 'react-virtualized';import { Link } from "react-router-dom";
 import _ from 'lodash';
+import LinkButton from "../components/LinkButton";
 
 const BooksComponent = () =>{
 
@@ -134,8 +135,15 @@ const BooksComponent = () =>{
         {loading && (
           <Spinner type="grow" color="primary" />
         )}
+        
         </div>
 
+        <LinkButton
+          color="primary"
+          className="mt-5"
+          to='book/new'
+        > Add Book Manually
+        </LinkButton>
 
         <InputGroup>
             <Input 
