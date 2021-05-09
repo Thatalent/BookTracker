@@ -145,7 +145,7 @@ const EditBookComponent = (props)=> {
             </Label>
             </FormGroup>
             <FormGroup>
-            <Label for="exampleSelect">Select</Label>
+            <Label for="exampleSelect">Collection</Label>
             <Input type="select" name="select" id="collectionSelect" onChange={onDropdownSelected}>
                 <option
                     key="none"
