@@ -23,6 +23,6 @@ namespace book_tracker.Models
 
         public string Title { get; set; }
 
-        public int YearPublished { get; set; }
+        public string YearPublished { get; set; }
     }
 }
